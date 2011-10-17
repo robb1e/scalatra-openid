@@ -5,12 +5,15 @@ import org.openid4java.consumer._
 import org.openid4java.discovery._
 import org.openid4java.message.ax._
 import org.openid4java.message._
+import collection.mutable.ConcurrentMap
+import scala.collection.JavaConversions._
+import java.util.concurrent.ConcurrentHashMap
 
 case class AuthUser(email: String, firstName: String, lastName: String)
 
 class AuthFilter extends ScalatraFilter {
-    
-    var sessionAuth: Map[String, AuthUser] = Map()
+
+    var sessionAuth: ConcurrentMap[String, AuthUser] = new ConcurrentHashMap[String, AuthUser]()
     val manager = new ConsumerManager
     
     get("/") {
@@ -24,9 +27,10 @@ class AuthFilter extends ScalatraFilter {
     
     get("/logout") {
         sessionAuth.get(session.getId) match {
-            case Some(user) => sessionAuth = sessionAuth - session.getId
+            case Some(user) => sessionAuth -= session.getId
             case None => 
         }
+        session.invalidate()
         redirect("/")
     }
     
